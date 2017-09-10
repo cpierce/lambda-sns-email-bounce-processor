@@ -14,14 +14,6 @@
 const AWS = require('aws-sdk');
 
 /**
- * KMS Encryption/Decryption Load
- *
- * @const
- * @type {AWS}
- */
-const KMS = new AWS.KMS();
-
-/**
  * MYSQL Load
  *
  * @const
@@ -46,13 +38,12 @@ const MYSQL_HOST = process.env.mysqlHost;
 const MYSQL_USER = process.env.mysqlUser;
 
 /**
- * Environment Variable for MySQL Password [Encrypted]
+ * Environment Variable for MySQL Password
  *
  * @const
  * @type {string}
  */
-const MYSQL_PASSWORD_ENCRYPTED = process.env.mysqlPassword;
-let MYSQL_PASSWORD;
+const MYSQL_PASSWORD = process.env.mysqlPassword;
 
 /**
  * Environment Variable for MySQL Database
@@ -108,11 +99,11 @@ function checkBounce(event, context, callback) {
     if (snsMessage.notificationType) {
         if (snsMessage.notificationType === 'Bounce') {
             bounceType = snsMessage.bounce.bounceType;
-            email      = cleanEmail(snsMessage.bounce.bouncedRecipients.emailAddress);
+            email      = cleanEmail(snsMessage.bounce.bouncedRecipients[0].emailAddress);
         } else if (snsMessage.notificationType === 'Complaint') {
             // set to 'Permanent' so that the complaint email is always removed.
             bounceType = 'Permanent';
-            email      = cleanEmail(snsMessage.complaint.complainedRecipients.emailAddress);
+            email      = cleanEmail(snsMessage.complaint.complainedRecipient[0].emailAddress);
         }
     }
 
@@ -154,8 +145,7 @@ function handleBounce(email, context, callback) {
 
     connection.connect();
 
-    var data  = {MYSQL_EMAIL_FIELD: email};
-    var query = connection.query('DELETE FROM `' + MYSQL_TABLE + '` WHERE ?', data, (err, result) => {
+    var query = connection.query('DELETE FROM `' + MYSQL_TABLE + '` WHERE `' + MYSQL_EMAIL_FIELD + '` = \'' + email + '\' LIMIT 1', (err, result) => {
         if (err) {
             console.log('There was an error with your query', err);
         } else {
@@ -188,16 +178,6 @@ function processBounceRequest(event, context, callback) {
  * @param {Function} callback
  */
 exports.handler = (event, context, callback) => {
-    if (MYSQL_PASSWORD) {
-        processBounceRequest(event, context, callback);
-    } else {
-        KMS.decrypt({ CiphertextBlob: new Buffer(MYSQL_PASSWORD_ENCRYPTED, 'base64') }, (err, data) => {
-            if (err) {
-                console.log('Decrypt error:', err);
-                return callback(err);
-            }
-            MYSQL_PASSWORD = data.Plaintext.toString('ascii');
-            processBounceRequest(event, context, callback);
-        });
-    }
+    console.log('Email Bounce Processor - Protreat');
+    processBounceRequest(event, context, callback);
 };
