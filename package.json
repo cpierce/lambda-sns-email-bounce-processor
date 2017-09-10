@@ -1,0 +1,17 @@
+{
+  "name": "sqs_consumer-lambda",
+  "version": "0.1.1",
+  "private": true,
+  "description": "Consume Messages from SQS Queue for Lambda Worker",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/jshint ."
+  },
+  "dependencies": {
+    "async": "2.0.*"
+  },
+  "devDependencies": {
+    "aws-sdk": "2.3.*",
+    "jshint": "^2.9.5"
+  }
+}
