@@ -103,32 +103,32 @@ function checkArguments(event, context) {
  */
 function checkBounce(event, context, callback) {
     var snsMessage = JSON.parse(event.Records[0].Sns.Message);
+    var bounceType = '';
+    var email      = '';
     if (snsMessage.notificationType) {
         if (snsMessage.notificationType === 'Bounce') {
-            var bounceType = snsMessage.bounce.bounceType;
-            var email      = cleanEmail(snsMessage.bounce.bouncedRecipients.emailAddress);
-        } else if (snsnMessage.notificationType === 'Complaint') {
+            bounceType = snsMessage.bounce.bounceType;
+            email      = cleanEmail(snsMessage.bounce.bouncedRecipients.emailAddress);
+        } else if (snsMessage.notificationType === 'Complaint') {
             // set to 'Permanent' so that the complaint email is always removed.
-            var bounceType = 'Permanent';
-            var email      = cleanEmail(snsMessage.complaint.complainedRecipients.emailAddress);
+            bounceType = 'Permanent';
+            email      = cleanEmail(snsMessage.complaint.complainedRecipients.emailAddress);
         }
     }
 
-    if (email && bounceType) {
-        if (bounceType === 'Permanent') {
-            handleBounce(email, context, callback);
-        }
+    if (bounceType === 'Permanent' && email.length > 0) {
+        handleBounce(email, context, callback);
     }
 }
 
 /**
  * Clean Email method.
  *
- * @param {object}   emails
+ * @param {object}   dirty_email
  * @param {object}   context
  */
-function cleanEmail(email, context) {
-    var clean_email = email.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
+function cleanEmail(dirty_email, context) {
+    var clean_email = dirty_email.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
 
     if (clean_email && clean_email[0]) {
         return clean_email[0];

@@ -1,5 +1,5 @@
 node_modules/
 output.yml
-SQS_Consumer.zip
+*.zip
 .DS_Store
 package-lock.json
